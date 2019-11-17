@@ -1,0 +1,80 @@
+extends layout
+
+block content
+  h1 GIF 채팅방
+  fieldset
+    legend 채팅방 목록
+    table
+      thead
+        tr
+          th 방 제목
+          th 종류
+          th 허용인원
+          th 방장
+      tbody
+      for room in rooms
+        tr(data-id=room._id)
+          td= room.title
+          td= room.password ? '비밀방' : '공개방'
+          td= room.max
+          td(style='color: ' + room.owner)= room.owner
+          -var password = room.password ? 'true' : 'false';
+          td: button(data-password= password data-id= room._id).join-btn 입장
+    .error-message= error
+    a(href='/room') 채팅방 생성
+    script(src='/socket.io/socket.io.js')
+    script.
+      const socket = io.connect('http://localhost:8005/room', {
+          path: '/socket.io'
+      });
+      socket.on('newRoom', (data) => {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          const btn = document.createElement('button');
+          
+          td.textContent = data.title;
+          tr.appendChild(td);
+
+          td = document.createElement('td');
+          td.textContent = data.password ? '비밀방' : '공개방';
+          tr.appendChild(td);
+
+          td = document.createElement('td');
+          td.textContent = data.max;
+          tr.appendChild(td);
+
+          td = document.createElement('td');
+          td.style.color = data.owner;
+          td.textContent = data.owner;
+          tr.appendChild(td);
+
+          td = document.createElement('td');
+          btn.textContent = '입장';
+          btn.dataset.password = data.password ? 'true' : 'false';
+          btn.dataset.id = data._id;
+          btn.addEventListener('click', addBtnEvent);
+          td.appendChild(btn);
+          tr.appendChild(td);
+          tr.dataset.id = data._id;
+          document.querySelector('table tbody').appendChild(tr);
+      });
+
+      socket.on('removeRoom', (data) => {
+          document.querySelectorAll('tbody tr').forEach(tr => {
+              if(tr.dataset.id === data){
+                  tr.parentNode.removeChild(tr);
+              }
+          });
+      });
+
+      function addBtnEvent(e){
+          if(e.target.dataset.password === 'true'){
+              const password = promt('비밀번호를 입력하세요');
+              location.href = `/room/${e.target.dataset.id}?password=${password}`;
+          }else{
+              location.href = `/room/${e.target.dataset.id}`;
+          }
+          document.querySelectorAll('.join-btn').forEach(e => {
+              btn.addEventListener('click', addBtnEvent);
+          });
+      }

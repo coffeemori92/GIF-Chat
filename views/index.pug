@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  p console 탭과 network 탭을 확인!
+  script(src='/socket.io/socket.io.js')
+  script.
+    const socket = io.connect('http://localhost:8005', {
+        path: '/socket.io',
+        transports: ['websocket']
+    });
+    socket.on('news', data => {
+        console.log(data);
+        socket.emit('reply', 'Hello Node.js');
+    });
